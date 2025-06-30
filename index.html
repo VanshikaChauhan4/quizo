@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>quizo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="container">
+  <div class="main-container" style="display:flex; gap: 0; max-width: 1200px; margin: auto; padding: 2rem;">
+    <div class="box" style="flex: 1; background-image: none;">
+      <section class="section">
+        <img src="https://i.pinimg.com/736x/c8/0c/90/c80c90e3fbab368e3f197d47f7fff3a0.jpg" alt="Quiz Image" />
+        <p class="conatiner-paragraph">
+          Take a Quiz and test your knowledge
+        </p>
+        <div class="dot-container">
+          <span class="dot dot-A"></span>
+          <span class="dot dot-B"></span>
+          <span class="dot dot-B"></span>
+        </div>
+      </section>
+    </div>
+    <div class="form-container" style="flex: 1; background-image: url('https://i.pinimg.com/736x/7e/88/b8/7e88b827f4d3b9dab0107b2c593c65fe.jpg'); background-repeat: no-repeat; background-position: center; background-size: cover;">
+      <section class="form-section">
+        <div class="login-link">
+          <a href="#">Already have an account ></a>
+        </div>
+        <h2 class="title">Welcome to Quizkarooo</h2>
+        <p class="subtitle">Register your account</p>
+<form action="category.html" method="get">
+  <div class="form-group">
+    <label for="name">Enter Name</label>
+    <input id="name" name="name" type="text" required autocomplete="name" value=""" />
+  </div>
+  <div class="form-group">
+    <label for="email">Enter Email</label>
+    <input id="email" name="email" type="email" required autocomplete="email" value="" />
+  </div>
+  <div class="form-group relative">
+    <label for="password">Enter Password</label>
+    <input id="password" name="password" type="password" required autocomplete="new-password" value="" />
+    <button
+      type="button"
+      aria-label="Toggle password visibility"
+      class="toggle-password"
+      onclick="togglePasswordVisibility()"
+      tabindex="-1"
+    >
+    </button>
+  </div>
+  <button
+    type="submit" class="Submit-button">
+    
+    Sign Up
+  </button>
+</form>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
+</create_file>

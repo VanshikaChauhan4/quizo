@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>quizo</title>
+   <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <section id="result-section" class="result-section">
+  <div class="result-icon">
+    <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 12l2 2 4-4M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </div>
+
+  <h2 class="result-title">Congratulations</h2>
+  <p id="result-category" class="result-category"></p>
+  <p id="result-score" class="result-score"></p>
+
+  <div class="result-buttons">
+    <button id="play-again-btn" class="btn-primary">Play Again</button>
+    <button id="back-home-btn" class="btn-secondary">Back to Home</button>
+  </div>
+</section>
+<script>
+    (() => {
+      "use strict";
+
+      // Cached elements for sections
+      const sections = {
+        register: document.getElementById('register-section'),
+        category: document.getElementById('category-section'),
+        quiz: document.getElementById('quiz-section'),
+        result: document.getElementById('result-section'),
+      };
+
+      // Form & Controls
+      const registerForm = document.getElementById('register-form');
+      const startQuizBtn = document.getElementById('start-quiz-btn');
+      const categoryCards = document.querySelectorAll('.category-card');
+      const userGreeting = document.getElementById('user-greeting');
+      const quizCategoryEl = document.getElementById('quiz-category');
+      const progressIndicator = document.getElementById('progress-indicator');
+      const quizQuestionEl = document.getElementById('quiz-question');
+      const answersForm = document.getElementById('answers-form');
+      const nextQuestionBtn = document.getElementById('next-question-btn');
+      const resultCategoryEl = document.getElementById('result-category');
+      const resultScoreEl = document.getElementById('result-score');
+      const playAgainBtn = document.getElementById('play-again-btn');
+      const backHomeBtn = document.getElementById('back-home-btn');
+      const togglePasswordBtn = document.getElementById('togglePassword');
+      const toLoginBtn = document.getElementById('to-login-btn');
+
+      // User state
+      let user = null;
+      let selectedCategory = null;
+      let quizQuestions = [];
+      let currentQuestionIndex = 0;
+      let score = 0;
+
+      // Questions Data: 25+ questions spread across 5 categories
+      // Each category has at least 5 questions, each with 4 answers, one correct.
+      const questionsBank = {
+        "Web Design": [
+          {
+            question: "What does HTML stand for?",
+            answers: [
+              "HyperText Markup Language",
+              "Hyperlinks and Text Markup Language",
+              "Home Tool Markup Language",
+              "Hyperlinking Text Making Language"
+            ],
+            correct: 0
+          },
+          {
+            question: "What is the main purpose of CSS?",
+            answers: [
+              "Structure web content",
+              "Style web content",
+              "Manage databases",
+              "Program web logic"
+            ],
+            correct: 1
+          },
+          {
+            question: "Which CSS property controls text size?",
+            answers: [
+              "text-style",
+              "font-size",
+              "text-size",
+              "font-style"
+            ],
+            correct: 1
+          },
+          {
+            question: "What does 'responsive design' mean?",
+            answers: [
+              "Website adapts to different screen sizes",
+              "Making websites look the same on all browsers",
+              "Using responsive animations",
+              "Optimizing images"
+            ],
+            correct: 0
+          },
+          {
+            question: "Which tag is used to add a paragraph in HTML?",
+            answers: [
+              "<div>",
+              "<p>",
+              "<para>",
+              "<section>"
+            ],
+            correct: 1
+          }
+        ],
+        "Motion Graphics": [
+          {
+            question: "What software is best known for motion graphics?",
+            answers: [
+              "Adobe Photoshop",
+              "Adobe After Effects",
+              "Microsoft PowerPoint",
+              "Final Cut Pro"
+            ],
+            correct: 1
+          },
+          {
+            question: "What does FPS stand for in animation?",
+            answers: [
+              "Frames per second",
+              "Fast playback speed",
+              "Frame position system",
+              "Frequency per second"
+            ],
+            correct: 0
+          },
+          {
+            question: "What is a keyframe in animation?",
+            answers: [
+              "A frame where animation starts and ends",
+              "The first frame of a video",
+              "A background image",
+              "The last frame of a video"
+            ],
+            correct: 0
+          },
+          {
+            question: "Which file type is best for motion graphics with transparency?",
+            answers: [
+              "JPEG",
+              "PNG",
+              "MOV with alpha channel",
+              "MP4"
+            ],
+            correct: 2
+          },
+          {
+            question: "What does easing in animation refer to?",
+            answers: [
+              "Changing speed gradually",
+              "Cutting frames",
+              "Adding sound effects",
+              "Looping animation"
+            ],
+            correct: 0
+          }
+        ],
+        "Web Development": [
+          {
+            question: "What language is primarily used for web development?",
+            answers: [
+              "Python",
+              "HTML",
+              "JavaScript",
+              "C++"
+            ],
+            correct: 2
+          },
+          {
+            question: "What does API stand for?",
+            answers: [
+              "Application Programming Interface",
+              "Applied Program Input",
+              "Advanced Programming Internet",
+              "Application Program Interaction"
+            ],
+            correct: 0
+          },
+          {
+            question: "Which of these frameworks is frontend?",
+            answers: [
+              "Django",
+              "React",
+              "Flask",
+              "Laravel"
+            ],
+            correct: 1
+          },
+          {
+            question: "Which symbol starts a CSS id selector?",
+            answers: [
+              "#",
+              ".",
+              "*",
+              "%"
+            ],
+            correct: 0
+          },
+          {
+            question: "What does SQL do?",
+            answers: [
+              "Styles websites",
+              "Structure queries for databases",
+              "Programming logic",
+              "Orchestrate servers"
+            ],
+            correct: 1
+          }
+        ],
+        "UX Design": [
+          {
+            question: "What does UX stand for?",
+            answers: [
+              "User eXperience",
+              "User Extra",
+              "Universal eXamples",
+              "User Expression"
+            ],
+            correct: 0
+          },
+          {
+            question: "Which is a key principle of good UX design?",
+            answers: [
+              "Complexity",
+              "Consistency",
+              "Colorful UI",
+              "High cost"
+            ],
+            correct: 1
+          },
+          {
+            question: "What tool is commonly used for wireframing?",
+            answers: [
+              "Adobe Illustrator",
+              "Figma",
+              "Visual Studio",
+              "Slack"
+            ],
+            correct: 1
+          },
+          {
+            question: "What is a persona in UX design?",
+            answers: [
+              "A user profile representing a typical user",
+              "A graphical icon",
+              "A coding standard",
+              "A type of animation"
+            ],
+            correct: 0
+          },
+          {
+            question: "Which process helps understand user behavior?",
+            answers: [
+              "Code testing",
+              "User research",
+              "Server analysis",
+              "Project planning"
+            ],
+            correct: 1
+          }
+        ],
+        "SEO Optimize": [
+          {
+            question: "What does SEO stand for?",
+            answers: [
+              "Search Engine Optimization",
+              "Site Engagement Optimization",
+              "Social Energy Output",
+              "Search Extra Order"
+            ],
+            correct: 0
+          },
+          {
+            question: "Which of the following impact SEO the most?",
+            answers: [
+              "Page load speed",
+              "Font size",
+              "Company logo design",
+              "Number of images"
+            ],
+            correct: 0
+          },
+          {
+            question: "What is a backlink?",
+            answers: [
+              "Link from another site to your site",
+              "A link within the same page",
+              "Your website’s login page",
+              "A link to social media"
+            ],
+            correct: 0
+          },
+          {
+            question: "What is a meta description?",
+            answers: [
+              "Hidden page metadata",
+              "Content summarizing web page shown in search results",
+              "A website banner",
+              "A programming tag"
+            ],
+            correct: 1
+          },
+          {
+            question: "What tool can be used to check SEO rankings?",
+            answers: [
+              "Google Analytics",
+              "Photoshop",
+              "Slack",
+              "Discord"
+            ],
+            correct: 0
+          }
+        ]
+      };
+
+      // DOM State helpers
+      function switchSection(sectionKey) {
+        for (const key in sections) {
+          if (key === sectionKey) {
+            sections[key].classList.remove('hidden');
+          } else {
+            sections[key].classList.add('hidden');
+          }
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // Shuffle array helper
+      const shuffleArray = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      };
+
+      // Generate quiz questions for selected category, shuffled, limited to 5
+      function generateQuiz(category) {
+        if (!questionsBank[category]) return [];
+        const allQuestions = questionsBank[category];
+        // Shuffle to ensure random each time
+        const shuffledAll = shuffleArray(allQuestions.slice());
+        // Limit to 5
+        return shuffledAll.slice(0, 5).map(q => {
+          return {
+            ...q,
+            // Shuffle answers array and keep track of correct index
+            ...(() => {
+              const originalAnswers = q.answers.slice();
+              const correctAnswer = q.answers[q.correct];
+              const answersShuffled = shuffleArray(originalAnswers);
+              const newCorrectIndex = answersShuffled.findIndex(a => a === correctAnswer);
+              return { answers: answersShuffled, correct: newCorrectIndex };
+            })()
+          };
+        });
+      }
+
+      // Show question
+      function showQuestion(index) {
+        const questionData = quizQuestions[index];
+        quizCategoryEl.textContent = `Category : ${selectedCategory}`;
+        progressIndicator.textContent = `${index + 1} / ${quizQuestions.length}`;
+        quizQuestionEl.textContent = questionData.question;
+
+        // Clear old answers
+        answersForm.innerHTML = '';
+
+        questionData.answers.forEach((ans, i) => {
+          const answerId = `answer${i}`;
+          const label = document.createElement('label');
+          label.className = "border border-indigo-300 rounded-md flex items-center gap-3 px-5 py-3 cursor-pointer select-none hover:bg-indigo-100 transition duration-150";
+          label.htmlFor = answerId;
+
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.name = 'answer';
+          radio.id = answerId;
+          radio.value = i;
+          radio.className = "peer invisible";
+
+          const span = document.createElement('span');
+          span.className = "text-indigo-900 text-base peer-checked:font-semibold peer-checked:text-indigo-800";
+          span.textContent = ans;
+
+          label.appendChild(radio);
+          label.appendChild(span);
+
+          answersForm.appendChild(label);
+        });
+
+        nextQuestionBtn.disabled = true;
+      }
+
+      // Collect user selected answer index
+      function getSelectedAnswer() {
+        const checkedRadio = answersForm.querySelector('input[name="answer"]:checked');
+        if (!checkedRadio) return null;
+        return parseInt(checkedRadio.value, 10);
+      }
+
+      // Event Handlers
+
+      // Password toggle visibility
+      togglePasswordBtn.addEventListener('click', () => {
+        const pwInput = registerForm.password;
+        if (pwInput.type === 'password') {
+          pwInput.type = 'text';
+          togglePasswordBtn.textContent = 'Hide';
+        } else {
+          pwInput.type = 'password';
+          togglePasswordBtn.textContent = 'Show';
+        }
+      });
+
+      // Registration form submit
+      registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = e.target.name.value.trim();
+        const email = e.target.email.value.trim();
+        const password = e.target.password.value.trim();
+        if (name && email && password) {
+          user = { name, email };
+          userGreeting.textContent = `Hello, ${user.name}`;
+          selectedCategory = null;
+          score = 0;
+
+          // Clear category selection highlight
+          categoryCards.forEach(card => card.classList.remove('ring-4', 'ring-indigo-500'));
+
+          startQuizBtn.disabled = true;
+          switchSection('category');
+        }
+      });
+
+      // Simulate login page link - for demo goes back to registration form (we only have one form)
+      toLoginBtn?.addEventListener('click', () => {
+        alert('Login page is not implemented in this demo. Please use the registration form.');
+      });
+
+      // Category card select
+      categoryCards.forEach(card => {
+        card.addEventListener('click', () => {
+          categoryCards.forEach(c => c.classList.remove('ring-4', 'ring-indigo-500'));
+          card.classList.add('ring-4', 'ring-indigo-500');
+          selectedCategory = card.getAttribute('data-category');
+          startQuizBtn.disabled = false;
+        });
+      });
+
+      // Start quiz button
+      startQuizBtn.addEventListener('click', () => {
+        if (!selectedCategory) return;
+
+        // Generate new quiz set
+        quizQuestions = generateQuiz(selectedCategory);
+        currentQuestionIndex = 0;
+        score = 0;
+
+        showQuestion(currentQuestionIndex);
+        switchSection('quiz');
+      });
+
+      // Enable next button only when answer is selected
+      answersForm.addEventListener('change', (e) => {
+        if (getSelectedAnswer() !== null) {
+          nextQuestionBtn.disabled = false;
+        } else {
+          nextQuestionBtn.disabled = true;
+        }
+      });
+
+      // Next question button
+      nextQuestionBtn.addEventListener('click', () => {
+        const selectedAnswer = getSelectedAnswer();
+        if (selectedAnswer === null) return;
+
+        // Check correctness
+        if (selectedAnswer === quizQuestions[currentQuestionIndex].correct) {
+          score++;
+        }
+
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < quizQuestions.length) {
+          showQuestion(currentQuestionIndex);
+        } else {
+          // Show results
+          resultCategoryEl.textContent = `Category : ${selectedCategory}`;
+          resultScoreEl.textContent = `You answered ${score} out of ${quizQuestions.length} questions correctly.`;
+          switchSection('result');
+        }
+      });
+
+      // Play again button
+      playAgainBtn.addEventListener('click', () => {
+        if (!selectedCategory) return;
+        quizQuestions = generateQuiz(selectedCategory);
+        currentQuestionIndex = 0;
+        score = 0;
+        showQuestion(currentQuestionIndex);
+        switchSection('quiz');
+      });
+
+      // Back to home button
+      backHomeBtn.addEventListener('click', () => {
+        // Reset state to choose category
+        selectedCategory = null;
+        score = 0;
+        startQuizBtn.disabled = true;
+        categoryCards.forEach(card => card.classList.remove('ring-4', 'ring-indigo-500'));
+        switchSection('category');
+      });
+
+      // Initial load state
+      switchSection('register');
+    })();
+  </script>
+</body>
+
+</html>
